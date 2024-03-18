@@ -2,15 +2,13 @@ using Avanpost.Interviews.Task.Integration.Data.DbCommon;
 using Avanpost.Interviews.Task.Integration.Data.Models;
 using Avanpost.Interviews.Task.Integration.Data.Models.Models;
 using Avanpost.Interviews.Task.Integration.SandBox.Connector;
+using Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain;
 
 namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
 {
     public class UnitTest1
     {
         private const string CurrentProvider = "POSTGRE";
-        private static string requestRightGroupName = "Request";
-        private static string itRoleRightGroupName = "Role";
-        private static string delimeter = ":";
         private static string mssqlConnectionString = "";
         private static string postgreConnectionString = "Server=localhost;Port=5432;Database=testdb;Username=postgres;Password=1;";
         private static Dictionary<string, string> connectorsCS = new Dictionary<string, string>
@@ -70,7 +68,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
             var connector = GetConnector(provider);
             var userInfo = connector.GetUserProperties(DefaultData.MasterUserLogin);
             Assert.NotNull(userInfo);
-            Assert.Equal(5, userInfo.Count());
+            Assert.Equal(DefaultData.PropsCount, userInfo.Count());
             Assert.True(userInfo.FirstOrDefault(_ => _.Value.Equals(DefaultData.MasterUser.TelephoneNumber)) != null);
         }
 
@@ -115,7 +113,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         {
             var dataSetter = Init(provider);
             var connector = GetConnector(provider);
-            var RoleId = $"{itRoleRightGroupName}{delimeter}{dataSetter.GetITRoleId()}";
+            var RoleId = $"{Right.ITRoleRightGroupName}{Right.Delimeter}{dataSetter.GetITRoleId()}";
             connector.AddUserPermissions(
                 DefaultData.MasterUserLogin,
                 new [] { RoleId });
@@ -129,7 +127,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         {
             var dataSetter = Init(provider);
             var connector = GetConnector(provider);
-            var requestRightIdToDrop = $"{requestRightGroupName}{delimeter}{dataSetter.GetRequestRightId(DefaultData.RequestRights[DefaultData.MasterUserRequestRights.First()].Name)}";
+            var requestRightIdToDrop = $"{Right.RequestRightGroupName}{Right.Delimeter}{dataSetter.GetRequestRightId(DefaultData.RequestRights[DefaultData.MasterUserRequestRights.First()].Name)}";
             connector.RemoveUserPermissions(
                 DefaultData.MasterUserLogin,
                 new [] { requestRightIdToDrop });

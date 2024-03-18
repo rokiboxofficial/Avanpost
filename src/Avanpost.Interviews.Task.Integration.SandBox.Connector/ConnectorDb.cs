@@ -1,12 +1,14 @@
 ﻿using Avanpost.Interviews.Task.Integration.Data.DbCommon.DbModels;
 using Avanpost.Interviews.Task.Integration.Data.Models;
 using Avanpost.Interviews.Task.Integration.Data.Models.Models;
+using Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain.Services;
 
 namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
 {
     public class ConnectorDb : IConnector
     {
         private readonly PropertyMapper _propertyMapper;
+        private UserPropertyService _userPropertyService;
         private IUsersRepository _usersRepository = null!;
 
         public ConnectorDb()
@@ -16,7 +18,10 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
 
         public void StartUp(string connectionString)
         {
-            _usersRepository = new PostgresUsersRepository(connectionString);
+            // dispose
+            var usersRepository = new PostgresUsersRepository(connectionString);
+            _usersRepository = usersRepository;
+            _userPropertyService = new UserPropertyService(usersRepository);
         }
 
         public void CreateUser(UserToCreate userToCreate)
@@ -33,44 +38,28 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
         }
 
         public IEnumerable<Property> GetAllProperties()
-        {
-            throw new NotImplementedException();
-        }
+            => _userPropertyService.GetAllProperties();
 
         public IEnumerable<UserProperty> GetUserProperties(string userLogin)
-        {
-            throw new NotImplementedException();
-        }
+            => _userPropertyService.GetUserPropertiesAsync(userLogin).GetAwaiter().GetResult();
 
         public bool IsUserExists(string userLogin)
-        {
-            throw new NotImplementedException();
-        }
+            => _usersRepository.IsUserExistsAsync(userLogin).GetAwaiter().GetResult();
 
         public void UpdateUserProperties(IEnumerable<UserProperty> properties, string userLogin)
-        {
-            throw new NotImplementedException();
-        }
+            => _userPropertyService.UpdateUserPropertiesAsync(properties, userLogin).GetAwaiter().GetResult();
 
         public IEnumerable<Permission> GetAllPermissions()
-        {
-            throw new NotImplementedException();
-        }
+            => _usersRepository.GetAllPermissionsAsync().GetAwaiter().GetResult();
 
         public void AddUserPermissions(string userLogin, IEnumerable<string> rightIds)
-        {
-            throw new NotImplementedException();
-        }
+            => _usersRepository.AddUserPermissionsAsync(userLogin, rightIds).GetAwaiter().GetResult();
 
         public void RemoveUserPermissions(string userLogin, IEnumerable<string> rightIds)
-        {
-            throw new NotImplementedException();
-        }
+            => _usersRepository.RemoveUserPermissionsAsync(userLogin, rightIds).GetAwaiter().GetResult();
 
         public IEnumerable<string> GetUserPermissions(string userLogin)
-        {
-            throw new NotImplementedException();
-        }
+            => _usersRepository.GetUserPermissionsAsync(userLogin).GetAwaiter().GetResult();
 
         public ILogger Logger { get; set; } = null!;
     }
