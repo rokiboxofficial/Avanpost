@@ -1,4 +1,3 @@
-
 using Avanpost.Interviews.Task.Integration.Data.DbCommon;
 using Avanpost.Interviews.Task.Integration.Data.Models;
 using Avanpost.Interviews.Task.Integration.Data.Models.Models;
@@ -8,17 +7,18 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
 {
     public class UnitTest1
     {
-        static string requestRightGroupName = "Request";
-        static string itRoleRightGroupName = "Role";
-        static string delimeter = ":";
-        static string mssqlConnectionString = "";
-        static string postgreConnectionString = "Server=localhost;Port=5432;Database=testdb;Username=postgres;Password=1;";
-        static Dictionary<string, string> connectorsCS = new Dictionary<string, string>
+        private const string CurrentProvider = "POSTGRE";
+        private static string requestRightGroupName = "Request";
+        private static string itRoleRightGroupName = "Role";
+        private static string delimeter = ":";
+        private static string mssqlConnectionString = "";
+        private static string postgreConnectionString = "Server=localhost;Port=5432;Database=testdb;Username=postgres;Password=1;";
+        private static Dictionary<string, string> connectorsCS = new Dictionary<string, string>
         {
             { "MSSQL",$"ConnectionString='{mssqlConnectionString}';Provider='SqlServer.2019';SchemaName='AvanpostIntegrationTestTaskSchema';"},
             { "POSTGRE", $"ConnectionString='{postgreConnectionString}';Provider='PostgreSQL.9.5';SchemaName='AvanpostIntegrationTestTaskSchema';"}
         };
-        static Dictionary<string, string> dataBasesCS = new Dictionary<string, string>
+        private static Dictionary<string, string> dataBasesCS = new Dictionary<string, string>
         {
             { "MSSQL",mssqlConnectionString},
             { "POSTGRE", postgreConnectionString}
@@ -40,10 +40,8 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
             return connector;
         }
 
-
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void CreateUser(string provider)
         {
             var dataSetter = Init(provider);
@@ -54,22 +52,18 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void GetAllProperties(string provider)
         {
-            var dataSetter = Init(provider);
             var connector = GetConnector(provider);
             var propInfos = connector.GetAllProperties();
             Assert.Equal(DefaultData.PropsCount, propInfos.Count());
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void GetUserProperties(string provider)
         {
-            var dataSetter = Init(provider);
             var connector = GetConnector(provider);
             var userInfo = connector.GetUserProperties(DefaultData.MasterUserLogin);
             Assert.NotNull(userInfo);
@@ -78,19 +72,16 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void IsUserExists(string provider)
         {
-            var dataSetter = Init(provider);
             var connector = GetConnector(provider);
             Assert.True(connector.IsUserExists(DefaultData.MasterUserLogin));
             Assert.False(connector.IsUserExists(TestData.NotExistingUserLogin));
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void UpdateUserProperties(string provider)
         {
             var dataSetter = Init(provider);
@@ -106,11 +97,9 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void GetAllPermissions(string provider)
         {
-            var dataSetter = Init(provider);
             var connector = GetConnector(provider);
             var permissions = connector.GetAllPermissions();
             Assert.NotNull(permissions);
@@ -118,8 +107,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void AddUserPermissions(string provider)
         {
             var dataSetter = Init(provider);
@@ -133,8 +121,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         }
 
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void RemoveUserPermissions(string provider)
         {
             var dataSetter = Init(provider);
@@ -146,9 +133,9 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
             Assert.False(dataSetter.MasterUserHasITRole(dataSetter.GetITRoleId().ToString()));
             Assert.False(dataSetter.MasterUserHasRequestRight(dataSetter.GetRequestRightId(DefaultData.RequestRights[DefaultData.MasterUserRequestRights.First()].Name).ToString()));
         }
+
         [Theory]
-        [InlineData("MSSQL")]
-        [InlineData("POSTGRE")]
+        [InlineData(CurrentProvider)]
         public void GetUserPermissions(string provider)
         {
             Init(provider);

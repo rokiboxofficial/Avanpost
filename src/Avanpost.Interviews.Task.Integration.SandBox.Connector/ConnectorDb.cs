@@ -55,6 +55,6 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
             throw new NotImplementedException();
         }
 
-        public ILogger Logger { get; set; }
+        public ILogger Logger { get; set; } = null!;
     }
 }
