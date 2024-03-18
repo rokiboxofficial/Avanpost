@@ -1,0 +1,37 @@
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_DB: "testdb"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgresql-data/:/var/lib/postgresql/data
+    networks:
+      - app
+  db-creator:
+    container_name: db-creator_container
+    build:
+      context: ./../
+      dockerfile: ./docker/DbCreationUtility/Dockerfile
+    command: -s "Server=postgres;Port=5432;Database=testdb;Username=postgres;Password=1;" -p "POSTGRE"
+    volumes:
+      - ./db-creator-data/:/db-creator-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
