@@ -44,11 +44,14 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         [InlineData(CurrentProvider)]
         public void CreateUser(string provider)
         {
+            const string testUserLogin = "testUserToCreate";
+            const string testUserHashPassword = "testPassword";
+
             var dataSetter = Init(provider);
             var connector = GetConnector(provider);
-            connector.CreateUser(new UserToCreate("testUserToCreate", "testPassword") { Properties = new UserProperty[] { new UserProperty("isLead", "false") } });
-            Assert.NotNull(dataSetter.GetUser("testUserToCreate"));
-            Assert.Equal(DefaultData.MasterUserDefaultPassword, dataSetter.GetUserPassword(DefaultData.MasterUserLogin));
+            connector.CreateUser(new UserToCreate(testUserLogin, testUserHashPassword) { Properties = new UserProperty[] { new UserProperty("isLead", "false") } });
+            Assert.NotNull(dataSetter.GetUser(testUserLogin));
+            Assert.Equal(testUserHashPassword, dataSetter.GetUserPassword(testUserLogin));
         }
 
         [Theory]

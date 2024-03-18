@@ -1,18 +1,35 @@
-﻿using Avanpost.Interviews.Task.Integration.Data.Models;
+﻿using Avanpost.Interviews.Task.Integration.Data.DbCommon.DbModels;
+using Avanpost.Interviews.Task.Integration.Data.Models;
 using Avanpost.Interviews.Task.Integration.Data.Models.Models;
 
 namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
 {
     public class ConnectorDb : IConnector
     {
-        public void StartUp(string connectionString)
+        private readonly PropertyMapper _propertyMapper;
+        private IUsersRepository _usersRepository = null!;
+
+        public ConnectorDb()
         {
-            throw new NotImplementedException();
+            _propertyMapper = new PropertyMapper();
         }
 
-        public void CreateUser(UserToCreate user)
+        public void StartUp(string connectionString)
         {
-            throw new NotImplementedException();
+            _usersRepository = new PostgresUsersRepository(connectionString);
+        }
+
+        public void CreateUser(UserToCreate userToCreate)
+        {
+            var user = _propertyMapper.Map<User>(userToCreate.Properties.Concat(new UserProperty[] { new UserProperty("login", userToCreate.Login) }));
+            var security = new Sequrity()
+            {
+                UserId = userToCreate.Login,
+                Password = userToCreate.HashPassword
+            };
+
+            _usersRepository.CreateUserAsync(user).GetAwaiter().GetResult();
+            _usersRepository.CreateSecurityAsync(security).GetAwaiter().GetResult();
         }
 
         public IEnumerable<Property> GetAllProperties()
