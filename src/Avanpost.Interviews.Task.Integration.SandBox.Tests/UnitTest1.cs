@@ -62,6 +62,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         public void GetAllProperties(string provider)
         {
             // Arrange.
+            Init(provider);
             var connector = GetConnector(provider);
 
             // Act.
@@ -76,6 +77,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         public void GetUserProperties(string provider)
         {
             // Arrange.
+            Init(provider);
             var connector = GetConnector(provider);
 
             // Act.
@@ -92,6 +94,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         public void IsUserExists(string provider)
         {
             // Arrange.
+            Init(provider);
             var connector = GetConnector(provider);
 
             // Act, Assert.
@@ -125,6 +128,7 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Tests
         public void GetAllPermissions(string provider)
         {
             // Arrange.
+            Init(provider);
             var connector = GetConnector(provider);
 
             // Act.
