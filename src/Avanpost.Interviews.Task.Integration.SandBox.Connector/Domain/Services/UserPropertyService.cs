@@ -1,12 +1,13 @@
 ﻿using Avanpost.Interviews.Task.Integration.Data.DbCommon.DbModels;
 using Avanpost.Interviews.Task.Integration.Data.Models.Models;
+using Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain.ValueObjects;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
 namespace Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain.Services
 {
-    public class UserPropertyService
+    public sealed class UserPropertyService
     {
         private readonly Lazy<Dictionary<string, PropertyInfo>> _permittedPropertyInfoByColumnName;
         private readonly IUsersRepository _usersRepository;

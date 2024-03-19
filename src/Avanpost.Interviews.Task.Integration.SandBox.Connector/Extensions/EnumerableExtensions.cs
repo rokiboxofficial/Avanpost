@@ -5,7 +5,7 @@
         public static IEnumerable<TSource> Act<TSource>(this IEnumerable<TSource> source, Action<TSource> action)
         {
             foreach (var element in source)
-                action(element);
+                action.Invoke(element);
 
             return source;
         }

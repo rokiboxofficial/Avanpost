@@ -3,9 +3,9 @@ using Avanpost.Interviews.Task.Integration.SandBox.Connector.Extensions;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
+namespace Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain.Services
 {
-    internal sealed class PropertyMapper
+    internal sealed class PropertyMappingService
     {
         public TTarget Map<TTarget>(IEnumerable<UserProperty> properties) where TTarget : new()
         {

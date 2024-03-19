@@ -1,9 +1,8 @@
 ﻿using System.Text;
 
-namespace Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain
+namespace Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain.ValueObjects
 {
-    // TODO: mb struct
-    public class Right
+    public struct Right
     {
         public const string RequestRightGroupName = "Request";
         public const string ITRoleRightGroupName = "Role";

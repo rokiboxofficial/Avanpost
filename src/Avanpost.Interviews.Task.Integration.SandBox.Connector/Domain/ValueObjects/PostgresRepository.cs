@@ -2,19 +2,19 @@
 using Avanpost.Interviews.Task.Integration.Data.DbCommon.DbModels;
 using Avanpost.Interviews.Task.Integration.Data.DbCommon;
 using Avanpost.Interviews.Task.Integration.Data.Models.Models;
-using Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain;
 
-namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
+namespace Avanpost.Interviews.Task.Integration.SandBox.Connector.Domain.ValueObjects
 {
     internal sealed class PostgresUsersRepository : IUsersRepository, IDisposable
     {
         private const string ProviderName = "POSTGRE";
         private readonly DataContext _dataContext;
 
-        public PostgresUsersRepository(string connectionString)
+        public PostgresUsersRepository(string rawConnectionString)
         {
-            // Parse conn string
-            var dbContextFactory = new DbContextFactory("Server=localhost;Port=5432;Database=testdb;Username=postgres;Password=1;");
+            var connectionString = ExtractConnectionString(rawConnectionString);
+
+            var dbContextFactory = new DbContextFactory(connectionString);
             _dataContext = dbContextFactory.GetContext(ProviderName);
         }
 
@@ -66,50 +66,59 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
 
         public async System.Threading.Tasks.Task RemoveUserPermissionsAsync(string userLogin, IEnumerable<string> rightIds)
         {
-            (List<int> iTRoleIds, List<int> requestRightIds) = InitializeIds();
+            var groups = rightIds.Select(Right.Parse).GroupBy(_ => _.Kind);
 
-            var userITRolesToRemove = await _dataContext.UserITRoles
-                .Where(_ => _.UserId == userLogin && iTRoleIds.Contains(_.RoleId))
-                .ToArrayAsync();
-            _dataContext.UserITRoles.RemoveRange(userITRolesToRemove);
+            foreach (var group in groups)
+            {
+                var ids = group.Select(_ => _.Id).ToHashSet();
 
-            var userRequestRightsToRemove = await _dataContext.UserRequestRights
-                .Where(_ => _.UserId == userLogin && requestRightIds.Contains(_.RightId))
-                .ToArrayAsync();
-            _dataContext.UserRequestRights.RemoveRange(userRequestRightsToRemove);
+                if (group.Key == RightKind.ITRole)
+                {
+                    var userITRolesToRemove = await _dataContext.UserITRoles
+                        .Where(_ => _.UserId == userLogin && ids.Contains(_.RoleId))
+                        .ToArrayAsync();
+
+                    _dataContext.UserITRoles.RemoveRange(userITRolesToRemove);
+                }
+                else
+                {
+                    var userRequestRightsToRemove = await _dataContext.UserRequestRights
+                       .Where(_ => _.UserId == userLogin && ids.Contains(_.RightId))
+                       .ToArrayAsync();
+
+                    _dataContext.UserRequestRights.RemoveRange(userRequestRightsToRemove);
+                }
+            }
 
             await _dataContext.SaveChangesAsync();
-
-            (List<int> iTRoleIds, List<int> requestRightIds) InitializeIds()
-            {
-                var iTRoleIds = new List<int>();
-                var requestRightIds = new List<int>();
-
-                foreach (var right in rightIds.Select(Right.Parse))
-                {
-                    var id = right.Id;
-
-                    if (right.Kind is RightKind.ITRole)
-                        iTRoleIds.Add(id);
-                    else
-                        requestRightIds.Add(id);
-                }
-
-                return (iTRoleIds, requestRightIds);
-            }
         }
 
         public async System.Threading.Tasks.Task AddUserPermissionsAsync(string userLogin, IEnumerable<string> rightIds)
         {
-            var rights = rightIds.Select(Right.Parse);
+            var groups = rightIds.Select(Right.Parse).GroupBy(_ => _.Kind);
 
-            foreach(var right in rights)
+            foreach(var group in groups)
             {
-                // TODO: make polymorphic
-                if (right.Kind is RightKind.ITRole)
-                    await _dataContext.UserITRoles.AddAsync(new UserITRole() { RoleId = right.Id, UserId = userLogin });
+                if(group.Key == RightKind.ITRole)
+                {
+                    var users = group.Select(_ => new UserITRole()
+                    {
+                        UserId = userLogin,
+                        RoleId = _.Id
+                    });
+
+                    await _dataContext.UserITRoles.AddRangeAsync(users);
+                }
                 else
-                    await _dataContext.UserRequestRights.AddAsync(new UserRequestRight() { RightId = right.Id, UserId = userLogin });
+                {
+                    var users = group.Select(_ => new UserRequestRight()
+                    {
+                        UserId = userLogin,
+                        RightId = _.Id
+                    });
+
+                    await _dataContext.UserRequestRights.AddRangeAsync(users);
+                }
             }
 
             await _dataContext.SaveChangesAsync();
@@ -130,26 +139,19 @@ namespace Avanpost.Interviews.Task.Integration.SandBox.Connector
 
         public void Dispose()
             => _dataContext.Dispose();
-    }
 
-    public interface IUsersRepository
-    {
-        public System.Threading.Tasks.Task CreateUserAsync(User user);
+        private string ExtractConnectionString(string rawConnectionString)
+        {
+            const string connectionStringPrefix = "ConnectionString='";
+            const char connectionStringEnding = '\'';
 
-        public System.Threading.Tasks.Task CreateSecurityAsync(Sequrity security);
+            var connectionStringSpan = rawConnectionString.AsSpan();
+            var startIndex = connectionStringSpan.IndexOf(connectionStringPrefix);
+            var cuttedPartSpan = connectionStringSpan.Slice(startIndex + connectionStringPrefix.Length);
+            var endIndex = cuttedPartSpan.IndexOf(connectionStringEnding);
+            var connectionString = cuttedPartSpan.Slice(0, endIndex).ToString();
 
-        public Task<IEnumerable<Permission>> GetAllPermissionsAsync();
-
-        public Task<IEnumerable<string>> GetUserPermissionsAsync(string userLogin);
-
-        public System.Threading.Tasks.Task RemoveUserPermissionsAsync(string userLogin, IEnumerable<string> rightIds);
-
-        public System.Threading.Tasks.Task AddUserPermissionsAsync(string userLogin, IEnumerable<string> rightIds);
-
-        public Task<bool> IsUserExistsAsync(string userLogin);
-
-        public System.Threading.Tasks.Task UpdateUserAsync(string userLogin, Action<User> userUpdater);
-
-        public Task<User> GetUserAsync(string userLogin);
+            return connectionString;
+        }
     }
 }
