@@ -5,4 +5,6 @@ WORKDIR /DbCreationUtility
 COPY ./src/DbCreationUtility/ ./
 COPY ./docker/DbCreationUtility/ ./
 
+RUN chmod +x /DbCreationUtility/entrypoint.sh
+
 ENTRYPOINT ["/DbCreationUtility/entrypoint.sh"]
